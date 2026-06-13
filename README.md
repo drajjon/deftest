@@ -141,5 +141,15 @@ deftest.run({ coverage = { enabled = true } })
 
 When the tests have completed a code coverage report will be generated to `luacov.report.out` and raw stats to `luacov.stats.out`. The report can be uploaded directly to a service such as [codecov.io](https://codecov.io) or the stats can be formatted into a report format accepted by other services such as [coveralls.io](http://coveralls.io/).
 
+### Post-Run Behavior
+Normally, DefTest will call `os.exit` at the end of a test run, so `deftest.run()` does not normally return. You can override this behavior:
+
+```Lua
+local result = deftest.run({ no_exit = true })
+if result == 1 then
+  -- Error(s) and/or test failure(s) occurred
+end
+```
+
 ## Limitations
 Unit testing in Defold works best when testing Lua modules containing pure logic. Testing script and gui_script files is more related to integration tests as it not only involves your code, but also visual components and interaction between the different game objects and the systems provided by the engine. If your scripts contains complex code that you wish to test it is recommended to move the code to a Lua module and test just that module.

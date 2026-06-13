@@ -33,7 +33,7 @@ end
 telescope.make_assertion(
 	"same",
 	function(_, ...)
-		local message =  telescope.assertion_message_prefix .. "all values to be the same. Actual: "
+		local message = telescope.assertion_message_prefix .. "all values to be the same. Actual: "
 		message = message .. argstostring(...)
 		return message
 	end,
@@ -70,8 +70,8 @@ local contexts = {}
 --- Add one or more sets of tests
 -- Each set of tests must be wrapped in a function
 function M.add(...)
-	local args = {...}
-	for _,test in ipairs(args) do
+	local args = { ... }
+	for _, test in ipairs(args) do
 		telescope.load_contexts(test, contexts)
 	end
 end
@@ -122,18 +122,26 @@ function M.run(options)
 		for _, v in pairs(results) do
 			if v.status_code == telescope.status_codes.err or
 				v.status_code == telescope.status_codes.fail then
-				os.exit(1)
+				return 1
 			end
 		end
-		os.exit(0)
+		return 0
 	end)
 
+	local exit_code
 	local ok, message = coroutine.resume(co)
-	if not ok then
+	if ok then
+		if coroutine.status(co) == 'dead' then
+			exit_code = message
+		end
+	else
 		print("Something went wrong while running tests", message)
-		os.exit(1)
+		exit_code = 1
 	end
+	if exit_code and not options.no_exit then
+		os.exit(exit_code)
+	end
+	return exit_code
 end
-
 
 return M
