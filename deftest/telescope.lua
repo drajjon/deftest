@@ -113,6 +113,11 @@ local assertion_message_prefix  = "Assert failed: expected "
 -- @class table
 local assertions = {}
 
+--- Retrieve the table of assertion functions for direct access outside test contexts
+local function get_assertions()
+  return assertions
+end
+
 --- Create a custom assertion.
 -- This creates an assertion along with a corresponding negative assertion. It
 -- is used internally by telescope to create the default assertions.
@@ -582,6 +587,7 @@ end
 
 _M.after_aliases            = after_aliases
 _M.make_assertion           = make_assertion
+_M.get_assertions           = get_assertions
 _M.assertion_message_prefix = assertion_message_prefix
 _M.before_aliases           = before_aliases
 _M.context_aliases          = context_aliases
