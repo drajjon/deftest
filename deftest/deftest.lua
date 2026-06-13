@@ -66,6 +66,8 @@ telescope.make_assertion(
 local M = {}
 
 local contexts = {}
+local options = {}
+local coro
 
 --- Add one or more sets of tests
 -- Each set of tests must be wrapped in a function
@@ -79,8 +81,8 @@ end
 --- Run all tests added via @{add}
 -- The engine will shut down with an exit code indicating success or
 -- failure and the test reports will be written to console.
-function M.run(options)
-	options = options or {}
+function M.run(new_options)
+	options = new_options or {}
 	options.coverage = options.coverage or {}
 	print("Code coverage:", options.coverage and options.coverage.enabled and "enabled" or "disabled")
 	if options.coverage.enabled then
@@ -93,7 +95,7 @@ function M.run(options)
 			return true
 		end
 	end
-	local co = coroutine.create(function()
+	coro = coroutine.create(function()
 		local callbacks = {}
 		local results = telescope.run(contexts, callbacks, filter)
 		local summary, data = telescope.summary_report(contexts, results)
@@ -128,14 +130,23 @@ function M.run(options)
 		return 0
 	end)
 
+	return M.resume()
+end
+
+function M.resume()
 	local exit_code
-	local ok, message = coroutine.resume(co)
-	if ok then
-		if coroutine.status(co) == 'dead' then
-			exit_code = message
+	if coro then
+		local ok, message = coroutine.resume(coro)
+		if ok then
+			if coroutine.status(coro) == 'dead' then
+				exit_code = message
+			end
+		else
+			print("Something went wrong while running tests", message)
+			exit_code = 1
 		end
 	else
-		print("Something went wrong while running tests", message)
+		print("Something went wrong while running tests (no coroutine found)")
 		exit_code = 1
 	end
 	if exit_code and not options.no_exit then
